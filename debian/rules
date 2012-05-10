@@ -1,0 +1,28 @@
+#!/usr/bin/make -f
+
+clean:
+	rm -rf obj
+	rm -rf bin
+	rm -f build
+	rm -rf debian/monodevelop-appmenu
+	dh_clean
+
+build:
+	xbuild /p:Configuration=Release
+	touch build
+
+install: build
+	dh_clean
+	mkdir -p debian/monodevelop-appmenu/usr/lib/monodevelop/AddIns
+	cp bin/Release/MonoDevelop.AppMenu.dll  debian/monodevelop-appmenu/usr/lib/monodevelop/AddIns
+
+binary-indep: install
+	dh_installchangelogs 
+	dh_compress 
+	dh_fixperms 
+	dh_installdeb 
+	dh_gencontrol 
+	dh_md5sums 
+	dh_builddeb 
+
+binary: binary-indep

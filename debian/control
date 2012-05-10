@@ -1,0 +1,12 @@
+Source: monodevelop-appmenu
+Section: utils
+Priority: optional
+Maintainer: Nikita Tsukanov <keks9n@gmail.com> 
+Uploaders: Nikita Tsukanov <keks9n@gmail.com>
+Build-Depends: mono-complete, libgtk2.0-cil-dev, monodevelop-latest,  mono-xbuild, debhelper
+
+Package: monodevelop-appmenu
+Architecture: all
+Depends: monodevelop-latest
+Description: Adds appmenu support to MonoDevelop
+ You have disable UBUNTU_MENUPROXY=0 hack to get it working
