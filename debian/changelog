@@ -1,4 +1,4 @@
-monodevelop-appmenu (0.1.1-ubuntu1) precise; urgency=low
+monodevelop-appmenu (0.1.1-ubuntu2) precise; urgency=low
 
   * Now using event based menu patching
 

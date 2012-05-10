@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Nikita Tsukanov <keks9n@gmail.com> 
 Uploaders: Nikita Tsukanov <keks9n@gmail.com>
-Build-Depends: mono-complete, monodevelop-latest,  mono-xbuild, debhelper, gtk-sharp2 (=2.12.10-9ppa)
+Build-Depends: monodevelop-latest, debhelper
 
 Package: monodevelop-appmenu
 Architecture: all
