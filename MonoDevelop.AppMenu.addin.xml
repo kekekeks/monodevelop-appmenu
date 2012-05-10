@@ -1,0 +1,20 @@
+<Addin namespace   = "MonoDevelop.AppMenu"  
+       id          = "AppMenu"  
+       name        = "AppMenu"  
+       author      = "Nikita Tsukanov"  
+       copyright   = "MIT/X11"  
+       url         = "http://github.com/kekekeks/monodevelop-appmenu"  
+       description = "Provides some workarounds for libappmenu."  
+       category    = "IDE extensions"  
+       version     = "0.1">  
+  
+    <Dependencies>
+        <Addin id="::MonoDevelop.Ide" version="3.0"/>   
+    </Dependencies>  
+  
+	<Extension path = "/MonoDevelop/Ide/StartupHandlers">
+		<Class class = "MonoDevelop.AppMenu.AppMenuInit"/>
+	</Extension>
+  
+
+</Addin>  
