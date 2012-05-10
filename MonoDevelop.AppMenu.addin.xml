@@ -6,7 +6,7 @@
        url         = "http://github.com/kekekeks/monodevelop-appmenu"  
        description = "Provides some workarounds for libappmenu."  
        category    = "IDE extensions"  
-       version     = "0.1">  
+       version     = "0.1.1">  
   
     <Dependencies>
         <Addin id="::MonoDevelop.Ide" version="3.0"/>   

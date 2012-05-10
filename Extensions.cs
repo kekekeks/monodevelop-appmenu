@@ -44,6 +44,11 @@ namespace MonoDevelop.AppMenu
 			return o.GetType().GetMethods(BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic)
 				.Where(m=>m.Name==method).First().Invoke(o, args);
 		}
+		public static System.Reflection.MethodInfo GetMethodInfo (this object o, string method)
+		{
+			return o.GetType().GetMethods(BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic)
+				.Where(m=>m.Name==method).First();
+		}
 		public static System.Reflection.FieldInfo GetFieldAccessor (this Type t, string field)
 		{
 			return t.GetFields(BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic)

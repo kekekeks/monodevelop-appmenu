@@ -23,8 +23,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
-
 using System;
 using System.Linq;
 using MonoDevelop.Components.Commands;
@@ -35,106 +33,131 @@ namespace MonoDevelop.AppMenu
 	{
 		protected override void Run ()
 		{
-			if(System.Environment.GetEnvironmentVariable("UBUNTU_MENUPROXY")!="libappmenu.so")
+			if (System.Environment.GetEnvironmentVariable ("UBUNTU_MENUPROXY") != "libappmenu.so")
 				return;
 
-			MonoDevelop.Ide.IdeApp.Initialized+=
+			MonoDevelop.Ide.IdeApp.Initialized +=
 				delegate
 			{
-				FixUp();
+				FixUp ();
 
-				MonoDevelop.Ide.IdeApp.Workbench.ActiveDocumentChanged+= 
-				delegate {
-					LiteFixUp();
-				};
-				var vbox=(Gtk.VBox) MonoDevelop.Ide.IdeApp.Workbench.RootWindow.Child;
-				Gtk.Timeout.Add(2000, delegate
+				System.Action deferredFixUp =
+				delegate
 				{
-					LiteFixUp();
-					return true;
-				});
+					FixUp ();
+					Gtk.Timeout.Add (100, delegate
+					{
+						FixUp ();
+						return false;
+					}
+					);
+
+
+				};
+				var workbench = MonoDevelop.Ide.IdeApp.Workbench;
+				workbench.ActiveDocumentChanged += (_, __) => deferredFixUp ();
+				workbench.LayoutChanged += (_, __) => deferredFixUp ();
+				workbench.DocumentOpened += (_, __) => deferredFixUp ();
+				var workspace = MonoDevelop.Ide.IdeApp.Workspace;
+				workspace.SolutionLoaded += (_, __) => deferredFixUp ();
+				workspace.FirstWorkspaceItemOpened += (_, __) => deferredFixUp ();
+				workspace.WorkspaceItemLoaded += (_, __) => deferredFixUp ();
+
 			};
 		}
 
-		void LiteFixUp ()
+		void FixUp ()
 		{
-			var win=(MonoDevelop.Ide.Gui.WorkbenchWindow) MonoDevelop.Ide.IdeApp.Workbench.RootWindow;
-			var mbar=(Gtk.MenuBar)win.GetPropertyValue("TopMenu");
+			var win = (MonoDevelop.Ide.Gui.WorkbenchWindow)MonoDevelop.Ide.IdeApp.Workbench.RootWindow;
+			var mbar = (Gtk.MenuBar)win.GetPropertyValue ("TopMenu");
 
-			WalkMenu(mbar);
+			WalkMenu (mbar);
 			
-					mbar.Visible=false;
-					mbar.Visible=true;
+			mbar.Visible = false;
+			mbar.Visible = true;
 		}
 
-		void FixUp()
+		static System.Reflection.MethodInfo ensurePopulated = null;
+
+		System.Collections.Generic.IEnumerable<T> FindAllChildren<T> (Gtk.Container cont)
 		{
-			foreach(var cmd in Ide.IdeApp.CommandService.GetCommands())
-			{
-				cmd.Text=cmd.Text.Replace("_", "");
+			foreach (var ch in cont.AllChildren.OfType<T>())
+				yield return ch;
+			foreach (var c in cont.AllChildren.OfType<Gtk.Container>())
+				foreach (var xch in FindAllChildren<T>(c))
+					yield return xch;
 
-				if(cmd.AccelKey!=null)
-				{
-					var xtxt="  ("+cmd.AccelKey.Replace("Control", "Ctrl")+")";
-					if(!cmd.Text.Contains(xtxt))
-						cmd.Text+=xtxt;
-
-				}
-			}
-
-			System.Threading.ThreadPool.QueueUserWorkItem(delegate
-			{
-				Gtk.Application.Invoke(delegate
-				{
-					LiteFixUp();
-
-
-				});
-
-			});
 		}
 
-
-		static System.Reflection.FieldInfo overrideLabel=null;
-		static System.Reflection.FieldInfo lastCmdInfo = null;
 		void WalkMenu (Gtk.MenuShell mnu)
 		{
-			foreach(var item in mnu.AllChildren.OfType<Gtk.MenuItem>())
+			foreach (var item in mnu.AllChildren.OfType<Gtk.MenuItem>())
 			{
 				try
 				{
-					item.Submenu.CallMethod("EnsurePopulated", new object[0]);
+					if (ensurePopulated == null)
+						ensurePopulated = item.Submenu.GetMethodInfo ("EnsurePopulated");
+					ensurePopulated.Invoke (item.Submenu, new object[0]);
 
-				}
-				catch(Exception)
+				} catch (Exception)
 				{
 
 				}
-				if(item is CommandMenuItem)
+				if (item is CommandMenuItem)
 				{
-
-					if(overrideLabel==null)
-						overrideLabel=item.GetType().GetFieldAccessor("overrideLabel");
-					if(lastCmdInfo==null)
-						lastCmdInfo=item.GetType().GetFieldAccessor("lastCmdInfo");
-					var value=(string)overrideLabel.GetValue(item);
-					if(value==null)
-						item.TooltipMarkup=" ";
-
-					if(item.TooltipMarkup!=null)
+					if ((item.TooltipMarkup == null) && (item.Child is Gtk.HBox))
 					{
-						value=((CommandInfo)lastCmdInfo.GetValue(item)).Text;
+
+						item.TooltipMarkup = " ";
+
+						var lbls = FindAllChildren<Gtk.Label> (item).ToList ();
+						if (lbls.Count > 0)
+						{
+							lbls [0].AddNotification ("label", (s, e) =>
+							{
+								var lbl = (Gtk.Label)s;
+								string txt = lbl.LabelProp;
+
+								txt = txt.Replace ("_", "");
+								string pairtxt = null;
+								if (lbl.Data.ContainsKey ("apair"))
+								{
+									pairtxt = ((Gtk.Label)lbl.Data ["apair"]).Text.Trim ();
+									if (pairtxt.Length != 0)
+										pairtxt = "    (" + pairtxt + ")";
+									else
+										pairtxt = null;
+								}
+								if ((pairtxt != null) && (!txt.Contains (pairtxt)))
+									txt = txt + pairtxt;
+								if (lbl.LabelProp != txt)
+									lbl.LabelProp = txt;
+							}
+							);
+
+							if (lbls.Count > 1)
+								lbls [0].Data ["apair"] = lbls [1];
+
+							lbls [0].Text = lbls [0].Text;
+						}
+
 					}
-					overrideLabel.SetValue(item, value.Replace("_",""));
-
-
-
 				}
-				item.AllChildren.OfType<Gtk.Label>().Each(l => l.LabelProp=l.LabelProp.Replace("_", ""));
-				if(item.Submenu!=null)
-					WalkMenu((Gtk.MenuShell)item.Submenu);
+
+
+				if (item.Submenu != null)
+					WalkMenu ((Gtk.MenuShell)item.Submenu);
 			}
 		}
+
 	}
 }
+
+
+
+
+
+
+
+
 
