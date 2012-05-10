@@ -35,9 +35,8 @@ namespace MonoDevelop.AppMenu
 	{
 		protected override void Run ()
 		{
-			//if(System.Environment.GetEnvironmentVariable("UBUNTU_MENUPROXY")!="libappmenu.so")
-			//	return;
-
+			if(System.Environment.GetEnvironmentVariable("UBUNTU_MENUPROXY")!="libappmenu.so")
+				return;
 
 			MonoDevelop.Ide.IdeApp.Initialized+=
 				delegate
