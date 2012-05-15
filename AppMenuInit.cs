@@ -70,7 +70,8 @@ namespace MonoDevelop.AppMenu
 		{
 			var win = (MonoDevelop.Ide.Gui.WorkbenchWindow)MonoDevelop.Ide.IdeApp.Workbench.RootWindow;
 			var mbar = (Gtk.MenuBar)win.GetPropertyValue ("TopMenu");
-
+			if(mbar==null)
+				return;
 			WalkMenu (mbar);
 			
 			mbar.Visible = false;
