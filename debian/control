@@ -7,6 +7,6 @@ Build-Depends: monodevelop-latest, debhelper
 
 Package: monodevelop-appmenu
 Architecture: all
-Depends: monodevelop-latest
+Depends: monodevelop-latest | monodevelop (>3.0)
 Description: Adds appmenu support to MonoDevelop
  You have disable UBUNTU_MENUPROXY=0 hack to get it working
